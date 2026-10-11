@@ -481,7 +481,7 @@ export async function analyzeEvaluationPdf(fileDataUrl: string) {
   const raw = parseLocalReportText(await extractPdfText(fileDataUrl));
   const normalized = normalizeAnalysis(raw);
   if (!normalized.domains.some(domain => domain.criteria.length > 0)) {
-    throw new Error("لم تُقرأ مؤشرات موثوقة. التحليل المحلي يتطلب PDF نصياً فيه عنوان المجال ورمز المؤشر واسمه ودرجة واضحة في السطر نفسه. الملفات المصورة والجداول غير الواضحة غير مدعومة.");
+    throw new Error("لم تُقرأ مؤشرات موثوقة. ارفعي تقرير تقويم يحتوي على المجال ورمز المؤشر واسمه ودرجته. تدعم القراءة المحلية الملفات النصية والصور الواضحة ذات جدول المؤشرات القياسي؛ اسم الملف لا يؤثر في التحليل.");
   }
   return normalized;
 }
