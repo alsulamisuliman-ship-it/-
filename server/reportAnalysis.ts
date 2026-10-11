@@ -478,7 +478,11 @@ export function parseAnalysisOutput(content: unknown, finishReason: string | nul
 }
 
 export async function analyzeEvaluationPdf(fileDataUrl: string) {
-  const raw = parseLocalReportText(await extractPdfText(fileDataUrl));
+  return analyzeEvaluationText(await extractPdfText(fileDataUrl));
+}
+
+export function analyzeEvaluationText(text: string) {
+  const raw = parseLocalReportText(text);
   const normalized = normalizeAnalysis(raw);
   if (!normalized.domains.some(domain => domain.criteria.length > 0)) {
     throw new Error("لم تُقرأ مؤشرات موثوقة. ارفعي تقرير تقويم يحتوي على المجال ورمز المؤشر واسمه ودرجته. تدعم القراءة المحلية الملفات النصية والصور الواضحة ذات جدول المؤشرات القياسي؛ اسم الملف لا يؤثر في التحليل.");

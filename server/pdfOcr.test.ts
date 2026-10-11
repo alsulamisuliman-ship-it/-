@@ -29,6 +29,19 @@ describe("geometric OCR report reading", () => {
     expect(text).toContain("1-1-1-1 التخطيط المدرسي 81.75%");
     expect(text).toContain("1-1-1-2 متابعة الخطة 86.5%");
   });
+  it("corroborates a partial domain heading using every table code prefix", () => {
+    const lines = [
+      line("dual الإدارة", 850, 150, 56),
+      line("1-1-1-1", 880, 400),
+      line("التخطيط المدرسي", 500, 403),
+      line("81.75%", 100, 390),
+    ];
+    expect(assembleOcrPage(lines, 1000, 1400, 5)).toContain(
+      "الإدارة المدرسية\n1-1-1-1"
+    );
+    lines[1] = line("2-1-1-1", 880, 400);
+    expect(assembleOcrPage(lines, 1000, 1400, 5)).toBe("");
+  });
   it("reads official overview totals and each uniquely labelled chart column", () => {
     const text = assembleOcrPage(
       [

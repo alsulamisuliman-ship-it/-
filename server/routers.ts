@@ -22,7 +22,7 @@ import {
   incrementUploadRateLimit,
   listReportsForOwner,
 } from "./db";
-import { analyzeEvaluationPdf, analyzeOfficialReportScores, evidenceSupportsCriterionScore, evidenceSupportsDomainScore, evidenceSupportsOverallScore, normalizeScoreAudit } from "./reportAnalysis";
+import { analyzeEvaluationText, analyzeEvaluationPdf, analyzeOfficialReportScores, evidenceSupportsCriterionScore, evidenceSupportsDomainScore, evidenceSupportsOverallScore, normalizeScoreAudit } from "./reportAnalysis";
 import { storageGetSignedUrl, storagePut } from "./storage";
 import { portalRouter, readActiveSchoolPortal } from "./portalRouter";
 
@@ -36,6 +36,7 @@ const uploadInput = z.object({
   fileName: z.string().trim().min(1).max(300),
   mimeType: z.literal("application/pdf"),
   fileData: z.string().min(50).max(18_000_000),
+  extractedText: z.string().min(20).max(300_000).optional(),
 });
 
 const numberValue = (value: string | null) => Number(value ?? 0);
@@ -240,7 +241,7 @@ export const appRouter = router({
       });
 
       try {
-        const extracted = await analyzeEvaluationPdf(input.fileData);
+        const extracted = input.extractedText ? analyzeEvaluationText(input.extractedText) : await analyzeEvaluationPdf(input.fileData);
         await completeReport({ ownerId: ctx.user.id, reportId, overallScore: extracted.overallScore, overallScoreEvidence: extracted.overallScoreEvidence, domains: extracted.domains });
         return { reportId, status: "completed" as const, overallScore: extracted.overallScore };
       } catch (error) {

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile, cp } from "node:fs/promises";
 import path from "node:path";
+import { createRequire } from "node:module";
 const destination = path.resolve(".ocr-models");
 const revision = "87416418657359cb625c412a48b6e1d6d41c29bd";
 const hashes = {
@@ -32,3 +33,24 @@ for (const [language, hash] of Object.entries(hashes)) {
   }
   console.log(`Verified local OCR model: ${language}`);
 }
+
+// Browser OCR assets are served by this application, with no CDN at runtime.
+const require = createRequire(import.meta.url);
+const browserDestination = path.resolve("client/public/local-ocr");
+await mkdir(browserDestination, { recursive: true });
+await cp(destination, path.join(browserDestination, "models"), {
+  recursive: true,
+});
+const tesseractRoot = path.dirname(
+  require.resolve("tesseract.js/package.json")
+);
+await cp(
+  path.join(tesseractRoot, "dist/worker.min.js"),
+  path.join(browserDestination, "worker.min.js")
+);
+const coreRoot = path.dirname(
+  createRequire(path.join(tesseractRoot, "package.json")).resolve(
+    "tesseract.js-core/package.json"
+  )
+);
+await cp(coreRoot, path.join(browserDestination, "core"), { recursive: true });

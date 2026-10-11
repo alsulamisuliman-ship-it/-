@@ -118,3 +118,6 @@ client/public/__manus__/version.json
 
 # Downloaded and checksum-verified local OCR models
 .ocr-models/
+
+# Generated browser OCR assets
+client/public/local-ocr/

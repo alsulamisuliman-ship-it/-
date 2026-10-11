@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evidenceSupportsCriterionScore, inferClassification, inferPriority, normalizeAnalysis, normalizeScoreAudit, parseAnalysisOutput, reconcileAnalysisWithScoreAudit } from "./reportAnalysis";
+import { analyzeEvaluationText, evidenceSupportsCriterionScore, inferClassification, inferPriority, normalizeAnalysis, normalizeScoreAudit, parseAnalysisOutput, reconcileAnalysisWithScoreAudit } from "./reportAnalysis";
 
 describe("تحويل نتائج التقرير", () => {
   it("يصنف الدرجات ويحدد الأولوية وفق عتبات واضحة", () => {
@@ -218,5 +218,18 @@ describe("تحويل نتائج التقرير", () => {
   it("يرفض استجابة مقتطعة برسالة واضحة بدلاً من تمرير JSON تالف", () => {
     expect(() => parseAnalysisOutput('{"domains":[', "length"))
       .toThrow("لم تكتمل نتيجة التحليل بسبب كثرة تفاصيل التقرير");
+  });
+});
+
+describe("locally extracted report text", () => {
+  it("validates client OCR evidence and preserves official totals", () => {
+    const result = analyzeEvaluationText("التقدم 88% [OCR صفحة 1]\nنواتج التعلم 78.5% [OCR صفحة 1]\n3-1-1-1 التحصيل الدراسي 72.5225% [OCR صفحة 19]");
+    expect(result.overallScore).toBe(88);
+    expect(result.domains[0].score).toBe(78.5);
+    expect(result.domains[0].criteria[0].score).toBe(72.5225);
+    expect(result.domains[0].criteria[0].name).not.toContain("OCR");
+  });
+  it("rejects text without a verifiable indicator", () => {
+    expect(() => analyzeEvaluationText("التقدم 88%\nنواتج التعلم\nنص بلا درجة للمؤشر")).toThrow("لم تُقرأ مؤشرات موثوقة");
   });
 });

@@ -16,6 +16,8 @@ const readAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
 
 export default function ReportUpload() {
   const [, setLocation] = useLocation();
+  const [reading, setReading] = useState(false);
+  const [progress, setProgress] = useState<{ page: number; total: number } | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [schoolName, setSchoolName] = useState("");
   const [educationOffice, setEducationOffice] = useState("");
@@ -50,8 +52,15 @@ export default function ReportUpload() {
       toast.error("الحد الأقصى لحجم التقرير هو 12 ميغابايت.");
       return;
     }
+    setReading(true);
+    setProgress(null);
+    try {
+    const { readPdfLocally } = await import("@/lib/localPdfReading");
+    const extractedText = await readPdfLocally(file, (page, total) => setProgress({ page, total }));
     const fileData = await readAsDataUrl(file);
-    upload.mutate({ schoolName: schoolName.trim(), educationOffice: educationOffice.trim() || undefined, city: city.trim() || undefined, stage: stage.trim() || undefined, fileName: file.name, mimeType: "application/pdf", fileData });
+    upload.mutate({ extractedText, schoolName: schoolName.trim(), educationOffice: educationOffice.trim() || undefined, city: city.trim() || undefined, stage: stage.trim() || undefined, fileName: file.name, mimeType: "application/pdf", fileData });
+    } catch (error) { toast.error(error instanceof Error ? error.message : "تعذّر قراءة الملف محلياً."); }
+    finally { setReading(false); }
   };
 
   return (
@@ -67,11 +76,12 @@ export default function ReportUpload() {
         <input type="file" accept="application/pdf,.pdf" className="sr-only" onChange={e => setFile(e.target.files?.[0] || null)} />
         {file ? <span className="flex items-center gap-2 text-sm font-bold text-[#176958]"><FileText className="h-5 w-5" />{file.name}<small className="font-normal text-muted-foreground">({(file.size / 1024 / 1024).toFixed(1)} MB)</small></span> : <span><UploadCloud className="mx-auto mb-2 h-6 w-6 text-[#4b9e8c]" /><span className="block text-sm font-bold text-[#285d54]">اختاري تقرير التقويم الذاتي بصيغة PDF</span><small className="mt-1 block text-xs text-muted-foreground">حتى 12 ميغابايت — اسم الملف لا يؤثر؛ تُقرأ المجالات والمؤشرات من محتواه</small></span>}
       </label>
-      {upload.isPending && <p className="mt-4 text-sm leading-6 text-muted-foreground" role="status">قراءة التقارير المصورة قد تستغرق عدة دقائق. أبقي الصفحة مفتوحة حتى اكتمال التحليل، ثم راجعي الدرجات مقابل ملف التقرير.</p>}
-      <Button onClick={handleUpload} disabled={upload.isPending || guestSession.isLoading || guestSession.isError} className="mt-5 h-11 w-full rounded-xl bg-[#0b6b5a] text-sm font-bold hover:bg-[#095a4c]">
-        {upload.isPending ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />يجري حفظ التقرير وتحليل محتواه…</> : <><FileText className="ml-2 h-4 w-4" />ابدأ التحليل واحفظ النتيجة</>}
+      {(reading || upload.isPending) && <p className="mt-4 text-sm leading-6 text-muted-foreground" role="status">تجري قراءة الملف على جهازك دون خدمات تحليل خارجية. أبقي الصفحة مفتوحة حتى اكتمال القراءة والحفظ.</p>}
+      {reading && progress && <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#e6f3ef]" role="progressbar" aria-label="تقدم قراءة التقرير" aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.page}><div className="h-full bg-[#0b6b5a] transition-all" style={{ width: `${(progress.page / progress.total) * 100}%` }} /></div>}
+      <Button onClick={handleUpload} disabled={reading || upload.isPending || guestSession.isLoading || guestSession.isError} className="mt-5 h-11 w-full rounded-xl bg-[#0b6b5a] text-sm font-bold hover:bg-[#095a4c]">
+        {reading || upload.isPending ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />{reading ? (progress ? `قراءة الصفحة ${progress.page} من ${progress.total}…` : "تجهيز القراءة المحلية على جهازك…") : "يجري حفظ نتيجة التحليل…"}</> : <><FileText className="ml-2 h-4 w-4" />ابدأ التحليل واحفظ النتيجة</>}
       </Button>
-      {upload.isPending && <p className="mt-3 text-center text-xs text-[#487a70]">قد تستغرق العملية دقائق قليلة وفقاً لحجم التقرير وعدد صفحاته. لا تغلقي الصفحة حتى تكتمل النتيجة.</p>}
+      {(reading || upload.isPending) && <p className="mt-3 text-center text-xs text-[#487a70]">سرعة القراءة تعتمد على جهازك وعدد الصفحات. لا تغلقي الصفحة حتى تكتمل النتيجة.</p>}
       <p className="mt-3 text-center text-[11px] leading-5 text-muted-foreground">تقارير المدرسة محمية بحساب المدرسة المفعّل، ولا تظهر في بوابة مدرسة أخرى.</p>
     </section>
   );
