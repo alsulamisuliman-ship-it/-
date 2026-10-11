@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1790712959281,
+      "tag": "0000_equal_blizzard",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1790713389828,
+      "tag": "0001_hot_gladiator",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1790742178464,
+      "tag": "0002_regular_post",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1790928726264,
+      "tag": "0003_eminent_dakota_north",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1790958376205,
+      "tag": "0004_official_report_scores",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1791061309485,
+      "tag": "0005_school_portal_access",
+      "breakpoints": true
+    }
+  ]
+}

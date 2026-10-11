@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: mizan-school-analytics
+    runtime: node
+    plan: free
+    buildCommand: corepack pnpm install --frozen-lockfile && corepack pnpm build
+    startCommand: corepack pnpm start
+    healthCheckPath: /api/trpc/portal.me
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: STORAGE_BACKEND
+        value: database
+      - key: STORAGE_SIGNING_SECRET
+        generateValue: true
+      - key: SUPERVISOR_ACCESS_CODE
+        sync: false
