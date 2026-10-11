@@ -170,7 +170,7 @@ export async function ocrPdf(
           if (pixels[i] < 235 || pixels[i + 1] < 235 || pixels[i + 2] < 235)
             ink++;
         if (ink > 20) {
-          worker = await createWorker("ara+eng", 1, {
+          worker ??= await createWorker("ara+eng", 1, {
             langPath: path.resolve(".ocr-models"),
             gzip: false,
             cacheMethod: "none",
@@ -179,8 +179,9 @@ export async function ocrPdf(
             tessedit_pageseg_mode: PSM.SPARSE_TEXT,
             tessedit_char_whitelist: "",
           });
+          const image = canvas.toBuffer("image/png");
           const response = await worker.recognize(
-            canvas.toBuffer("image/png"),
+            image,
             {},
             { text: true, blocks: true }
           );
@@ -218,7 +219,7 @@ export async function ocrPdf(
                   height: line.bbox.y1 - line.bbox.y0 + 30,
                 };
                 const label = await worker.recognize(
-                  canvas.toBuffer("image/png"),
+                  image,
                   { rectangle },
                   { text: true }
                 );
@@ -260,7 +261,7 @@ export async function ocrPdf(
                 height: line.bbox.y1 - line.bbox.y0 + 20,
               };
               const retry = await worker.recognize(
-                canvas.toBuffer("image/png"),
+                image,
                 { rectangle },
                 { text: true }
               );
@@ -303,7 +304,7 @@ export async function ocrPdf(
                 height: line.bbox.y1 - line.bbox.y0 + 16,
               };
               const retry = await worker.recognize(
-                canvas.toBuffer("image/png"),
+                image,
                 { rectangle },
                 { text: true }
               );
@@ -362,7 +363,7 @@ export async function ocrPdf(
               tessedit_char_whitelist: "0123456789.%",
             });
             const cell = await worker.recognize(
-              canvas.toBuffer("image/png"),
+              image,
               { rectangle },
               { text: true }
             );
@@ -383,8 +384,6 @@ export async function ocrPdf(
           pages.push(
             assembleOcrPage(lines, canvas.width, canvas.height, index)
           );
-          await worker.terminate();
-          worker = undefined;
         }
         canvas.width = 1;
         canvas.height = 1;
