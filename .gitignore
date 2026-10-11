@@ -115,3 +115,6 @@ client/public/__manus__/version.json
 
 # Private local report storage
 .local-storage/
+
+# Downloaded and checksum-verified local OCR models
+.ocr-models/

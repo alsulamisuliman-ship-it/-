@@ -92,7 +92,7 @@ function normalizeArabicNumberText(value: string) {
     .replace(/[۰-۹]/g, digit => String(easternArabicIndic.indexOf(digit)))
     .replace(/[٫]/g, ".")
     .replace(/[٪]/g, "%")
-    .replace(/(?<![\d.])%\s*(\d{1,3}(?:\.\d{1,2})?)/g, "$1%")
+    .replace(/(?<![\d.])%\s*(\d{1,3}(?:\.\d{1,4})?)/g, "$1%")
     .replace(/[ًٌٍَُِّْـ]/g, "")
     .replace(/(?<=\d),(?=\d)/g, ".");
 }
@@ -101,7 +101,7 @@ function normalizeArabicNumberText(value: string) {
 export function evidenceSupportsScore(score: number, evidence: string | null | undefined) {
   if (!evidence?.trim()) return false;
   const normalized = normalizeArabicNumberText(evidence);
-  const percentagePattern = /(\d{1,3}(?:\.\d{1,2})?)\s*%/g;
+  const percentagePattern = /(\d{1,3}(?:\.\d{1,4})?)\s*%/g;
   let match: RegExpExecArray | null;
   while ((match = percentagePattern.exec(normalized)) !== null) {
     if (Math.abs(Number(match[1]) - score) < 0.05) return true;
@@ -177,7 +177,7 @@ function normalizedWords(value: string) {
 function evidenceSupportsCriterionNumber(score: number, evidence: string) {
   if (evidenceSupportsScore(score, evidence)) return true;
   const normalized = normalizeArabicNumberText(evidence);
-  const valuePattern = /(\d{1,3}(?:\.\d{1,2})?)/g;
+  const valuePattern = /(\d{1,3}(?:\.\d{1,4})?)/g;
   let match: RegExpExecArray | null;
   while ((match = valuePattern.exec(normalized)) !== null) {
     if (Math.abs(Number(match[1]) - score) >= 0.05) continue;

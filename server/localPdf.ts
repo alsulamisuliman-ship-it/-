@@ -3,13 +3,13 @@ import type { RawAnalysis, RawScoreAudit, ExtractedCriterion } from "./reportAna
 const domainNames = ["الإدارة المدرسية", "التعليم والتعلم", "نواتج التعلم", "البيئة المدرسية"];
 const clean = (text: string) => text.replace(/[٠-٩]/g, d => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
   .replace(/[۰-۹]/g, d => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
-  .replace(/٫/g, ".").replace(/٪/g, "%").replace(/(?<![\d.])%\s*(\d{1,3}(?:\.\d{1,2})?)/g, "$1%").replace(/[ًٌٍَُِّْـ]/g, "")
+  .replace(/٫/g, ".").replace(/٪/g, "%").replace(/(?<![\d.])%\s*(\d{1,3}(?:\.\d{1,4})?)/g, "$1%").replace(/[ًٌٍَُِّْـ]/g, "")
   .replace(/[إأآ]/g, "ا").replace(/[–−]/g, "-");
 
 function singleScore(line: string) {
   const normalized = clean(line);
-  let matches = Array.from(normalized.matchAll(/(\d{1,3}(?:\.\d{1,2})?)\s*%/g));
-  if (!matches.length) matches = Array.from(normalized.matchAll(/(?:الدرجة|درجة|النسبة|نسبة)\s*[:：]?\s*(\d{1,3}(?:\.\d{1,2})?)(?![\d.-])/g));
+  let matches = Array.from(normalized.matchAll(/(\d{1,3}(?:\.\d{1,4})?)\s*%/g));
+  if (!matches.length) matches = Array.from(normalized.matchAll(/(?:الدرجة|درجة|النسبة|نسبة)\s*[:：]?\s*(\d{1,3}(?:\.\d{1,4})?)(?![\d.-])/g));
   if (matches.length !== 1) return null;
   const score = Number(matches[0][1]);
   return score >= 0 && score <= 100 ? score : null;
@@ -55,8 +55,8 @@ export function parseLocalReportText(text: string): RawAnalysis {
     // A single row must identify a criterion, its current domain, and one score.
     if (!current || codes.length !== 1 || score === null || line.length > 180) continue;
     const code = codes[0][0].replace(/\s/g, "");
-    const name = normalized.replace(codes[0][0], "").replace(/\d{1,3}(?:\.\d{1,2})?\s*%/g, "")
-      .replace(/(?:الدرجة|درجة|النسبة|نسبة)\s*[:：]?\s*\d{1,3}(?:\.\d{1,2})?/g, "").replace(/^\s*[:|\-]+|[:|\-]+\s*$/g, "").trim();
+    const name = normalized.replace(/\[OCR [^\]]+\]/g, "").replace(codes[0][0], "").replace(/\d{1,3}(?:\.\d{1,4})?\s*%/g, "")
+      .replace(/(?:الدرجة|درجة|النسبة|نسبة)\s*[:：]?\s*\d{1,3}(?:\.\d{1,4})?/g, "").replace(/^\s*[:|\-]+|[:|\-]+\s*$/g, "").trim();
     if (!name || !/[\u0621-\u064Aa-z]/i.test(name)) continue;
     const criterion: ExtractedCriterion = {
       code, name, score, evidence: line,
@@ -108,7 +108,10 @@ export async function extractPdfText(dataUrl: string) {
       page.cleanup();
     }
     const text = lines.join("\n");
-    if (text.trim().length < 20) throw new Error("هذا الملف لا يحتوي نصاً قابلاً للاستخراج. ارفعي PDF نصياً؛ الصور الممسوحة تحتاج OCR وغير مدعومة في التحليل المحلي.");
+    if (text.trim().length < 20) {
+      const { ocrPdf } = await import("./pdfOcr");
+      return await ocrPdf(pdf);
+    }
     return text;
   } finally {
     await task.destroy();

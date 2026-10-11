@@ -67,6 +67,7 @@ export default function ReportUpload() {
         <input type="file" accept="application/pdf,.pdf" className="sr-only" onChange={e => setFile(e.target.files?.[0] || null)} />
         {file ? <span className="flex items-center gap-2 text-sm font-bold text-[#176958]"><FileText className="h-5 w-5" />{file.name}<small className="font-normal text-muted-foreground">({(file.size / 1024 / 1024).toFixed(1)} MB)</small></span> : <span><UploadCloud className="mx-auto mb-2 h-6 w-6 text-[#4b9e8c]" /><span className="block text-sm font-bold text-[#285d54]">اختاري تقرير التقويم الذاتي بصيغة PDF</span><small className="mt-1 block text-xs text-muted-foreground">حتى 12 ميغابايت — يمكنك رفع تقارير تختلف بنيتها</small></span>}
       </label>
+      {upload.isPending && <p className="mt-4 text-sm leading-6 text-muted-foreground" role="status">قراءة التقارير المصورة قد تستغرق عدة دقائق. أبقي الصفحة مفتوحة حتى اكتمال التحليل، ثم راجعي الدرجات مقابل ملف التقرير.</p>}
       <Button onClick={handleUpload} disabled={upload.isPending || guestSession.isLoading || guestSession.isError} className="mt-5 h-11 w-full rounded-xl bg-[#0b6b5a] text-sm font-bold hover:bg-[#095a4c]">
         {upload.isPending ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />يجري حفظ التقرير وتحليل محتواه…</> : <><FileText className="ml-2 h-4 w-4" />ابدأ التحليل واحفظ النتيجة</>}
       </Button>
